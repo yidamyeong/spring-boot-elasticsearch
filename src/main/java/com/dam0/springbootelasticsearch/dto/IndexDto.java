@@ -13,7 +13,7 @@ import org.joda.time.format.DateTimeFormatter;
 public class IndexDto {
 
     private String index;
-    private String data;
+    private String data;    // JSONArray
 
     public String addDateTimeOnIndex() {
         StringBuilder stringBuilder = new StringBuilder();
