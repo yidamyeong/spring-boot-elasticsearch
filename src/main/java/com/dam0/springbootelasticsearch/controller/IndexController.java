@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 @RestController
 public class IndexController {
 
@@ -20,8 +22,20 @@ public class IndexController {
 
     @PostMapping(value = "/doc", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public Result createDocument(@ModelAttribute IndexDto indexDto) throws JsonProcessingException {
-        indexService.createDocument(indexDto);
+        indexService.createDocumentAsync(indexDto);
 
         return new Result("SUCCESS");
+    }
+
+    @PostMapping(value = "/doc/async", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public Result createDocumentAsync(@ModelAttribute IndexDto indexDto) throws JsonProcessingException {
+        long duration = indexService.asyncTest(indexDto);
+        return new Result("SUCCESS", duration);
+    }
+
+    @PostMapping(value = "/doc/sync", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public Result createDocumentSync(@ModelAttribute IndexDto indexDto) throws IOException {
+        long duration = indexService.syncTest(indexDto);
+        return new Result("SUCCESS", duration);
     }
 }

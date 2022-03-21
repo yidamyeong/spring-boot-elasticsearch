@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,7 +32,33 @@ public class IndexService {
         this.indexAPIs = indexAPIs;
     }
 
-    public void createDocument(IndexDto indexDto) throws JsonProcessingException {
+    public long asyncTest(IndexDto indexDto) throws JsonProcessingException {
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 100; i++) {
+            createDocumentAsync(indexDto);
+        }
+        long end = System.currentTimeMillis();
+
+        return end - start;
+    }
+
+    public long syncTest(IndexDto indexDto) throws IOException {
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 100; i++) {
+            createDocumentSync(indexDto);
+        }
+        long end = System.currentTimeMillis();
+
+        return end - start;
+    }
+
+    public void createDocumentAsync(IndexDto indexDto) throws JsonProcessingException {
+        Map<String, Object> source = readValue(indexDto);
+
+        indexAPIs.indexAsync(indexDto.addDateTimeOnIndex(), source);
+    }
+
+    private Map<String, Object> readValue(IndexDto indexDto) throws JsonProcessingException {
         Map<String, Object> source = objectMapper.readValue(indexDto.getData(), typeRefHashMap);  // JsonProcessingException
 
         if (!source.containsKey("time")) {
@@ -40,7 +67,13 @@ public class IndexService {
         }
         source.put("remote_ip", HttpUtil.getRemoteIp(httpServletRequest));
 
-        indexAPIs.indexAsync(indexDto.getIndex(), source);
+        return source;
+    }
+
+    public void createDocumentSync(IndexDto indexDto) throws IOException {
+        Map<String, Object> source = readValue(indexDto);
+
+        indexAPIs.index(indexDto.addDateTimeOnIndex(), source);
     }
 
     // now date
