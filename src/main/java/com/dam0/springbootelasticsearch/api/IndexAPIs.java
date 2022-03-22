@@ -65,38 +65,7 @@ public class IndexAPIs {
         });
     }
 
-    public CreateIndexResponse createIndex(String index) throws IOException {
-        CreateIndexRequest request = new CreateIndexRequest(index);
-
-        request.settings(Settings.builder()
-                .put("index.number_of_shards", 3)
-                .put("index.number_of_replicas", 2)
-        );
-
-        // request mapping - (1)
-        /*
-        request.mapping(
-                "{\n" +
-                        "  \"properties\": {\n" +
-                        "    \"message\": {\n" +
-                        "      \"type\": \"text\"\n" +
-                        "    }\n" +
-                        "  }\n" +
-                        "}",
-                XContentType.JSON);
-         */
-
-        // request mapping - (2)
-        Map<String, Object> message = new HashMap<>();
-        message.put("type", "text");
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("message", message);
-        Map<String, Object> mapping = new HashMap<>();
-        mapping.put("properties", properties);
-        request.mapping(mapping);
-
-        request.alias(new Alias("index_alias").filter(QueryBuilders.termQuery("user", "dam0")));
-
+    public CreateIndexResponse createIndexSync(CreateIndexRequest request) throws IOException {
         return restHighLevelClient.indices().create(request, RequestOptions.DEFAULT);
     }
 

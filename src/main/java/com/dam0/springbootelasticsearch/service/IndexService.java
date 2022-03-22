@@ -6,6 +6,9 @@ import com.dam0.springbootelasticsearch.util.HttpUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.common.settings.Settings;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -76,6 +79,47 @@ public class IndexService {
         indexAPIs.index(indexDto.addDateTimeOnIndex(), source);
     }
 
+    public void createIndexSync() throws IOException {
+
+        CreateIndexRequest request = new CreateIndexRequest("sample-config");
+
+        request.settings(Settings.builder()
+                .put("index.number_of_shards", 2)
+                .put("index.number_of_replicas", 2)
+        );
+
+        // request mapping - (1)
+        /*
+        request.mapping(
+                "{\n" +
+                        "  \"properties\": {\n" +
+                        "    \"category\": {\n" +
+                        "      \"type\": \"text\"\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}",
+                XContentType.JSON);
+         */
+
+        // request mapping - (2)
+        Map<String, Object> category = new HashMap<>();
+        category.put("type", "text");
+        Map<String, Object> prefix = new HashMap<>();
+        prefix.put("type", "text");
+
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("category", category);
+        properties.put("prefix", prefix);
+
+        Map<String, Object> mapping = new HashMap<>();
+        mapping.put("properties", properties);
+        request.mapping(mapping);
+
+//        request.alias(new Alias("index_alias").filter(QueryBuilders.termQuery("user", "dam0")));
+
+        indexAPIs.createIndexSync(request);  // IOException
+    }
+
     // now date
     private DateTime generateTime() {
         return new DateTime();
@@ -85,6 +129,5 @@ public class IndexService {
     private DateTime generateTimestamp() {
         return new DateTime(DateTimeZone.UTC);
     }
-
 
 }

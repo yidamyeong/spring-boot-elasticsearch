@@ -24,15 +24,16 @@ public class SearchAPIs {
         this.restHighLevelClient = restHighLevelClient;
     }
 
-    public SearchResponse search(String index, QueryBuilder query, String sortKey, int page, int size) throws IOException {
+    public SearchResponse search(String index, QueryBuilder query, String sortKey, Integer page, Integer size) throws IOException {
         SearchRequest searchRequest = new SearchRequest()
-                .indices(index)
-                .source(new SearchSourceBuilder()
-                        .query(query)
-                        .sort(sortKey)
-                        .from((page - 1) * size)
-                        .size(size)
-                );
+                    .indices(index)
+                    .source(new SearchSourceBuilder()
+                            .query(query)
+                            .sort(sortKey)
+                            .from((page - 1) * size)
+                            .size(size)
+                    );
+
         LOGGER.debug("SEARCH SOURCE : \n{}", searchRequest.source());
 
         return restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
