@@ -1,22 +1,21 @@
 package com.dam0.springbootelasticsearch.api;
 
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+@Slf4j
 @Component
 public class SearchAPIs {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SearchAPIs.class);
     private final RestHighLevelClient restHighLevelClient;
 
     @Autowired
@@ -34,7 +33,7 @@ public class SearchAPIs {
                             .size(size)
                     );
 
-        LOGGER.debug("SEARCH SOURCE : \n{}", searchRequest.source());
+        log.debug("SEARCH SOURCE : \n{}", searchRequest.source());
 
         return restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
     }

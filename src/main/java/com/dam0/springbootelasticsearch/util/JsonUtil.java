@@ -1,14 +1,12 @@
 package com.dam0.springbootelasticsearch.util;
 
-import com.dam0.springbootelasticsearch.handler.GlobalExceptionHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.ObjectUtils;
 
@@ -18,9 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class JsonUtil {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JsonUtil.class);
     private static final TypeReference<Map<String, Object>> typeRef = new TypeReference<>() {};
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -40,7 +38,7 @@ public class JsonUtil {
     // JSONArray -> List<Map>
     public static List<Map<String, Object>> getListFromJsonArray(JSONArray jsonArray) {
         if (ObjectUtils.isEmpty(jsonArray)) {
-            LOGGER.error("# JsonUtil.getListFromJsonArray() >> PARAMETER(jsonArray) IS NULL");
+            log.error("# JsonUtil.getListFromJsonArray() >> PARAMETER(jsonArray) IS NULL");
             throw new IllegalArgumentException("A PARAMETER(jsonArray) IS NULL");
         }
 
@@ -66,14 +64,14 @@ public class JsonUtil {
     // JSONObject -> Map<String, Object>
     public static Map<String, Object> getMapFromJSONObject(JSONObject jsonObject) {
         if (ObjectUtils.isEmpty(jsonObject)) {
-            LOGGER.error("# JsonUtil.getMapFromJSONObject() >> PARAMETER(jsonObject) IS NULL");
+            log.error("# JsonUtil.getMapFromJSONObject() >> PARAMETER(jsonObject) IS NULL");
             throw new IllegalArgumentException("A PARAMETER(jsonObject) IS NULL");
         }
 
         try {
             return objectMapper.readValue(jsonObject.toJSONString(), typeRef);
         } catch (Exception e) {
-            LOGGER.error("# JsonUtil.getMapFromJSONObject() >> JSONObject Reading as Map Failed");
+            log.error("# JsonUtil.getMapFromJSONObject() >> JSONObject Reading as Map Failed");
             throw new RuntimeException(e);
         }
     }

@@ -1,6 +1,7 @@
 package com.dam0.springbootelasticsearch.runner;
 
 import com.dam0.springbootelasticsearch.api.SearchAPIs;
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -17,10 +18,10 @@ import java.io.IOException;
 import java.util.*;
 
 @Order(2)
+@Slf4j
 @Component
 public class DemoApplicationRunner implements ApplicationRunner {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DemoApplicationRunner.class);
     private List<String> fieldList;
     private final SearchAPIs searchAPIs;
 
@@ -37,8 +38,8 @@ public class DemoApplicationRunner implements ApplicationRunner {
         try {
             response = searchAPIs.search("sample-index", query, "field2.keyword", 1, 100);  // IOException
         } catch (IOException e) {
-            LOGGER.error("## IOException Occurred");
-            LOGGER.error("# FAILED LOADING SAMPLE-FIELD-LIST", e);
+            log.error("## IOException Occurred");
+            log.error("# FAILED LOADING SAMPLE-FIELD-LIST", e);
             return;
         }
 
@@ -58,7 +59,7 @@ public class DemoApplicationRunner implements ApplicationRunner {
          */
 
         this.fieldList = fieldList;
-        LOGGER.debug("fieldList = {}", fieldList);
+        log.debug("fieldList = {}", fieldList);
     }
 
     public List<String> getList() {
