@@ -1,6 +1,7 @@
 package com.dam0.springbootelasticsearch.api;
 
 import com.dam0.springbootelasticsearch.dto.IndexDto;
+import com.dam0.springbootelasticsearch.dto.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.DocWriteResponse;
@@ -12,7 +13,10 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.Operator;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.DeleteByQueryRequest;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -77,6 +81,26 @@ public class DeleteAPIs {
         }
 
         return null; // 조회결과가 없으면 null 반환
+    }
+
+    // Delete By Query
+    public BulkByScrollResponse deleteByQuery(String index, QueryBuilder query,
+                                              String dateField, int size) throws IOException {
+        DeleteByQueryRequest request = new DeleteByQueryRequest();
+
+        // DeleteByQueryRequest 내부의 searchRequest 에서 from 값 주면 에러남
+        request.getSearchRequest().indices(index)
+                .source(new SearchSourceBuilder()
+                        .query(query)
+                        .sort(dateField, SortOrder.DESC)
+                        .size(size)
+                );
+
+        // SearchRequest, DeleteByQueryRequest 각각 사이즈 설정 필수
+        request.setSize(size);  // 6.8.0 까지는 사용 확인, 그 후로 Deprecated 된 듯
+        log.debug("DeleteByQueryRequest : \n" + request.getSearchRequest().source());
+
+        return restHighLevelClient.deleteByQuery(request, RequestOptions.DEFAULT);
     }
 
 }
