@@ -1,5 +1,7 @@
 package com.dam0.springbootelasticsearch.api;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.admin.indices.alias.Alias;
 import org.elasticsearch.action.index.IndexRequest;
@@ -21,16 +23,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class IndexAPIs {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(IndexAPIs.class);
     private final RestHighLevelClient restHighLevelClient;
-
-    @Autowired
-    public IndexAPIs(RestHighLevelClient restHighLevelClient) {
-        this.restHighLevelClient = restHighLevelClient;
-    }
 
     public IndexResponse index(String index, Map<String, Object> source) throws IOException {
         IndexRequest request = new IndexRequest()
@@ -39,12 +37,16 @@ public class IndexAPIs {
                 .timeout(TimeValue.timeValueSeconds(30));
 
         IndexResponse response = restHighLevelClient.index(request, RequestOptions.DEFAULT);
-        LOGGER.debug(response.toString());
+        log.debug(response.toString());
 
         return response;
     }
 
     public void indexAsync(String index, Map<String, Object> source) {
+        indexAsync(index, source, restHighLevelClient, log);
+    }
+
+    public static void indexAsync(String index, Map<String, Object> source, RestHighLevelClient restHighLevelClient, Logger log) {
         IndexRequest request = new IndexRequest()
                 .index(index)
                 .source(source, XContentType.JSON)
@@ -53,14 +55,14 @@ public class IndexAPIs {
         restHighLevelClient.indexAsync(request, RequestOptions.DEFAULT, new ActionListener<>() {
             @Override
             public void onResponse(IndexResponse response) {
-                LOGGER.debug("ASYNC SUCCESS");
-                LOGGER.debug(response.toString());
+                log.debug("ASYNC SUCCESS");
+                log.debug(response.toString());
             }
 
             @Override
             public void onFailure(Exception e) {
-                LOGGER.error("ASYNC FAILURE", e);
-                LOGGER.error("ASYNC REQUEST ERROR : {}", e.getMessage());
+                log.error("ASYNC FAILURE", e);
+                log.error("ASYNC REQUEST ERROR : {}", e.getMessage());
             }
         });
     }
@@ -90,14 +92,14 @@ public class IndexAPIs {
         restHighLevelClient.indices().createAsync(request, RequestOptions.DEFAULT, new ActionListener<>() {
             @Override
             public void onResponse(CreateIndexResponse response) {
-                LOGGER.debug("ASYNC SUCCESS");
-                LOGGER.debug(response.toString());
+                log.debug("ASYNC SUCCESS");
+                log.debug(response.toString());
             }
 
             @Override
             public void onFailure(Exception e) {
-                LOGGER.error("ASYNC FAILURE", e);
-                LOGGER.error("ASYNC REQUEST ERROR : {}", e.getMessage());
+                log.error("ASYNC FAILURE", e);
+                log.error("ASYNC REQUEST ERROR : {}", e.getMessage());
             }
         });
     }

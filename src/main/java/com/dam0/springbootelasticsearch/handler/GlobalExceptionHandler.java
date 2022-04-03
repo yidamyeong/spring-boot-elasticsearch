@@ -1,15 +1,14 @@
 package com.dam0.springbootelasticsearch.handler;
 
-import com.dam0.springbootelasticsearch.api.IndexAPIs;
 import com.dam0.springbootelasticsearch.dto.Error;
 import com.dam0.springbootelasticsearch.dto.Result;
 import com.dam0.springbootelasticsearch.util.HttpUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -25,16 +24,11 @@ import java.util.Map;
  */
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
+    private final FailLogHandler failLogHandler;
     private final HttpServletRequest httpServletRequest;
-    private final IndexAPIs indexAPIs;
-
-    @Autowired
-    public GlobalExceptionHandler(HttpServletRequest httpServletRequest, IndexAPIs indexAPIs) {
-        this.httpServletRequest = httpServletRequest;
-        this.indexAPIs = indexAPIs;
-    }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(JsonProcessingException.class)
@@ -76,7 +70,7 @@ public class GlobalExceptionHandler {
         DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM");
         String index = "fail_" + DateTime.now().toString(dateTimeFormatter);
 
-        indexAPIs.indexAsync(index, fail);
+        failLogHandler.saveFailLog(index, fail);
     }
 
 }

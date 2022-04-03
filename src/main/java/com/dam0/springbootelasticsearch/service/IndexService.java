@@ -6,6 +6,7 @@ import com.dam0.springbootelasticsearch.util.HttpUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.common.settings.Settings;
@@ -20,18 +21,13 @@ import java.util.Map;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class IndexService {
 
     private final TypeReference<HashMap<String, Object>> typeRefHashMap = new TypeReference<>() {};
     private final HttpServletRequest httpServletRequest;
     private final ObjectMapper objectMapper;
     private final IndexAPIs indexAPIs;
-
-    public IndexService(HttpServletRequest httpServletRequest, ObjectMapper objectMapper, IndexAPIs indexAPIs) {
-        this.httpServletRequest = httpServletRequest;
-        this.objectMapper = objectMapper;
-        this.indexAPIs = indexAPIs;
-    }
 
     public long asyncTest(IndexDto indexDto) throws JsonProcessingException {
         long start = System.currentTimeMillis();
@@ -127,5 +123,7 @@ public class IndexService {
     private DateTime generateTimestamp() {
         return new DateTime(DateTimeZone.UTC);
     }
+
+
 
 }
