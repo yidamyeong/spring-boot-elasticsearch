@@ -18,6 +18,10 @@ import org.joda.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -25,22 +29,6 @@ import java.io.IOException;
 public class SearchService {
 
     private final RestHighLevelClient restHighLevelClient;
-
-    public String search(SearchDto searchDto) throws Exception {
-        // 검색 조건에 _type 넣지 않기
-        SearchRequest searchRequest = new SearchRequest()
-                .indices(searchDto.getIndex())
-                .source(new SearchSourceBuilder()
-                        .query(searchDto.getQuery())
-                        .sort(searchDto.getDatefield(), SortOrder.DESC)
-                        .from((searchDto.getPage() - 1) * searchDto.getSize())
-                        .size(searchDto.getSize())
-                );
-        log.debug("SOURCE : \n" + searchRequest.source());
-
-        SearchResponse response = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
-        return response.toString();
-    }
 
     /**
      * 시리얼넘버 유효성 검증
@@ -70,12 +58,9 @@ public class SearchService {
     private QueryBuilder buildSearchQuery(String serialNumber, String stepTitle) {
         return QueryBuilders.boolQuery()
                 .should(QueryBuilders.boolQuery()
-                        .filter(QueryBuilders
-                                .matchQuery("serial_number.keyword", serialNumber))
-                        .filter(QueryBuilders
-                                .matchQuery("step_title.keyword", stepTitle))
-                        .filter(QueryBuilders
-                                .matchQuery("is_success.keyword", "T")));
+                        .filter(QueryBuilders.matchQuery("serial_number.keyword", serialNumber))
+                        .filter(QueryBuilders.matchQuery("step_title.keyword", stepTitle))
+                        .filter(QueryBuilders.matchQuery("is_success.keyword", "T")));
     }
 
     // 작성한 쿼리로 검색 실행
@@ -93,5 +78,37 @@ public class SearchService {
         log.debug("SEARCH COUNTS = {}", response.getHits().getHits().length);
 
         return response.getHits().getHits().length;
+    }
+
+    public boolean searchSerialNumber() throws Exception {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM");
+        String index = "history_log_" + DateTime.now().toString(dateTimeFormatter);
+
+        QueryBuilder query = QueryBuilders.boolQuery()
+                .should(QueryBuilders.boolQuery()
+                        .filter(QueryBuilders.matchQuery("step_order", 1))
+                        .filter(QueryBuilders.matchQuery("is_success.keyword", "T")));
+
+        SearchRequest request = new SearchRequest()
+                .indices(index)
+                .source(new SearchSourceBuilder()
+                        .query(query)
+                        .sort("time", SortOrder.DESC)
+                        .from(0)
+                        .size(10000)
+                );
+
+        SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT);
+        Stream<String> serialNumberStream = Arrays.stream(response.getHits().getHits()).map(s -> (String) s.getSourceAsMap().get("serial_number"));
+        List<String> serialNumbers = serialNumberStream.collect(Collectors.toList());
+        log.debug("serialNumbers = {}", serialNumbers);
+
+        for (String serialNumber : serialNumbers) {
+            if (!isSerialNumberValid(serialNumber)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
