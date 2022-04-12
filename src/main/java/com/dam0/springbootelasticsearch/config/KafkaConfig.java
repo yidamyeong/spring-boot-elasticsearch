@@ -2,11 +2,11 @@ package com.dam0.springbootelasticsearch.config;
 
 import com.dam0.springbootelasticsearch.dto.IndexDto;
 import com.dam0.springbootelasticsearch.handler.KafkaErrorHandler;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +17,7 @@ import org.springframework.kafka.core.*;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer2;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,9 +29,6 @@ public class KafkaConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    /**
-     * Producer Configuration
-     */
     @Bean
     public Map<String, Object> producerConfigs() {
         Map<String, Object> props = new HashMap<>();
@@ -41,15 +39,31 @@ public class KafkaConfig {
         return props;
     }
 
+    /** Basic Producer Configuration for docc-etl **/
     @Bean
-    public ProducerFactory<String, IndexDto> producerFactory() {
+    public ProducerFactory<String, IndexDto> basicProducerFactory() {
         return new DefaultKafkaProducerFactory<>(producerConfigs());
     }
 
     @Bean
-    public KafkaTemplate<String, IndexDto> KafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    @Qualifier("basic")
+    public KafkaTemplate<String, IndexDto> basicKafkaTemplate() {
+        return new KafkaTemplate<>(basicProducerFactory());
     }
+
+
+    /** Final Producer Configuration for docc-etl-final **/
+    @Bean
+    public ProducerFactory<String, IndexDto> finalProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfigs());
+    }
+
+    @Bean
+    @Qualifier("final")
+    public KafkaTemplate<String, IndexDto> finalKafkaTemplate() {
+        return new KafkaTemplate<>(finalProducerFactory());
+    }
+
 
 
     /**
