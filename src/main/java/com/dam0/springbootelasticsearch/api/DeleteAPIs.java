@@ -1,7 +1,5 @@
 package com.dam0.springbootelasticsearch.api;
 
-import com.dam0.springbootelasticsearch.dto.IndexDto;
-import com.dam0.springbootelasticsearch.dto.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.DocWriteResponse;
@@ -24,7 +22,6 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.security.InvalidParameterException;
 import java.util.*;
 
 @Slf4j
@@ -32,12 +29,11 @@ import java.util.*;
 @RequiredArgsConstructor
 public class DeleteAPIs {
 
-    private final RestHighLevelClient restHighLevelClient;
-
     /**
      * Document Id 로 삭제하기
      */
-    public DocWriteResponse.Result deleteById(String index, String documentId) throws IOException {
+    public static DocWriteResponse.Result deleteById(String index, String documentId,
+                                                     RestHighLevelClient restHighLevelClient) throws IOException {
         DeleteRequest request = new DeleteRequest()
                 .index(index)
                 .id(documentId);
@@ -49,7 +45,8 @@ public class DeleteAPIs {
     }
 
     // Document id 찾기
-    private String getDocId(String index, Map<String, Object> pkMap) {
+    public static String getDocId(String index, Map<String, Object> pkMap,
+                            RestHighLevelClient restHighLevelClient) {
         List<String> pkList = new ArrayList<>(pkMap.keySet());
 
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
@@ -84,8 +81,9 @@ public class DeleteAPIs {
     }
 
     // Delete By Query
-    public BulkByScrollResponse deleteByQuery(String index, QueryBuilder query,
-                                              String dateField, int size) throws IOException {
+    public static BulkByScrollResponse deleteByQuery(String index, QueryBuilder query,
+                                                     String dateField, int size,
+                                                     RestHighLevelClient restHighLevelClient) throws IOException {
         DeleteByQueryRequest request = new DeleteByQueryRequest();
 
         // DeleteByQueryRequest 내부의 searchRequest 에서 from 값 주면 에러남
