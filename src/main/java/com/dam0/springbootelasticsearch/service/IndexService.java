@@ -77,7 +77,7 @@ public class IndexService {
     public void createDocumentAsync(IndexDto indexDto) throws JsonProcessingException {
         Map<String, Object> source = readValue(indexDto);
 
-        indexAPIs.indexAsync(indexDto.addDateTimeOnIndex(), source);
+        IndexAPIs.indexAsync(indexDto.addDateTimeOnIndex(), source, restHighLevelClient);
     }
 
     private Map<String, Object> readValue(IndexDto indexDto) throws JsonProcessingException {
@@ -95,7 +95,7 @@ public class IndexService {
     public void createDocumentSync(IndexDto indexDto) throws IOException {
         Map<String, Object> source = readValue(indexDto);
 
-        indexAPIs.index(indexDto.addDateTimeOnIndex(), source);
+        IndexAPIs.index(indexDto.addDateTimeOnIndex(), source, restHighLevelClient);
     }
 
     public void createIndexSync() throws IOException {
@@ -136,7 +136,7 @@ public class IndexService {
 
 //        request.alias(new Alias("index_alias").filter(QueryBuilders.termQuery("user", "dam0")));
 
-        indexAPIs.createIndexSync(request);  // IOException
+        IndexAPIs.createIndexSync(request, restHighLevelClient);  // IOException
     }
 
     // now date

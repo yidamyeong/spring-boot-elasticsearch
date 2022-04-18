@@ -1,6 +1,8 @@
 package com.dam0.springbootelasticsearch.runner;
 
 import com.dam0.springbootelasticsearch.api.IndexAPIs;
+import lombok.RequiredArgsConstructor;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.boot.CommandLineRunner;
@@ -12,13 +14,11 @@ import java.util.Map;
 
 @Order(1)
 @Component
+@RequiredArgsConstructor
 public class DemoCommandLineRunner implements CommandLineRunner {
 
     private final IndexAPIs indexAPIs;
-
-    public DemoCommandLineRunner(IndexAPIs indexAPIs) {
-        this.indexAPIs = indexAPIs;
-    }
+    private final RestHighLevelClient restHighLevelClient;
 
     @Override
     public void run(String... args) {
@@ -27,6 +27,6 @@ public class DemoCommandLineRunner implements CommandLineRunner {
         source.put("field1", "sample-value");
         source.put("field2", "dummy");
 
-        indexAPIs.indexAsync("sample-index", source);
+        IndexAPIs.indexAsync("sample-index", source, restHighLevelClient);
     }
 }

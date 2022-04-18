@@ -30,7 +30,8 @@ public class IndexAPIs {
 
     private final RestHighLevelClient restHighLevelClient;
 
-    public IndexResponse index(String index, Map<String, Object> source) throws IOException {
+    public static IndexResponse index(String index, Map<String, Object> source,
+                                      RestHighLevelClient restHighLevelClient) throws IOException {
         IndexRequest request = new IndexRequest()
                 .index(index)
                 .source(source, XContentType.JSON)
@@ -42,11 +43,7 @@ public class IndexAPIs {
         return response;
     }
 
-    public void indexAsync(String index, Map<String, Object> source) {
-        indexAsync(index, source, restHighLevelClient, log);
-    }
-
-    public static void indexAsync(String index, Map<String, Object> source, RestHighLevelClient restHighLevelClient, Logger log) {
+    public static void indexAsync(String index, Map<String, Object> source, RestHighLevelClient restHighLevelClient) {
         IndexRequest request = new IndexRequest()
                 .index(index)
                 .source(source, XContentType.JSON)
@@ -67,11 +64,12 @@ public class IndexAPIs {
         });
     }
 
-    public CreateIndexResponse createIndexSync(CreateIndexRequest request) throws IOException {
+    public static CreateIndexResponse createIndexSync(CreateIndexRequest request,
+                                                      RestHighLevelClient restHighLevelClient) throws IOException {
         return restHighLevelClient.indices().create(request, RequestOptions.DEFAULT);
     }
 
-    public void createIndexAsync(String index, Map<String, Object> source) {
+    public static void createIndexAsync(String index, RestHighLevelClient restHighLevelClient) {
         CreateIndexRequest request = new CreateIndexRequest(index);
 
         request.source("{\n" +
