@@ -36,11 +36,19 @@ public class KafkaConfig {
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
 
+        /* Bulk 적재 시 너무 많은 record 가 Batch 로 한 번에 queueing 되어,
+           정해진 요청 시간 안에 브로커로 전부 프로듀싱되지 않을 때 TimeoutException 발생한다.
+           REQUEST_TIMEOUT 을 디폴트 30초의 3배로 주어 Exception 방지하도록 한다.
+           (Bulk 는 적재 완료되기까지 시간이 다소 걸려도 무방하므로)
+         */
+        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 90 * 1000);
+
         return props;
     }
 
     /** Basic Producer Configuration for docc-etl **/
     @Bean
+    @Qualifier("basic")
     public ProducerFactory<String, IndexDto> basicProducerFactory() {
         return new DefaultKafkaProducerFactory<>(producerConfigs());
     }
@@ -54,6 +62,7 @@ public class KafkaConfig {
 
     /** Final Producer Configuration for docc-etl-final **/
     @Bean
+    @Qualifier("final")
     public ProducerFactory<String, IndexDto> finalProducerFactory() {
         return new DefaultKafkaProducerFactory<>(producerConfigs());
     }
