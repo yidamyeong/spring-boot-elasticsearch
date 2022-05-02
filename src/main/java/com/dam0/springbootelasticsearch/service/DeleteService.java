@@ -2,8 +2,16 @@ package com.dam0.springbootelasticsearch.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.Operator;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.DeleteByQueryRequest;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +22,44 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class DeleteService {
+
+    private final RestHighLevelClient restHighLevelClient;
+
+    // 2개 이상의 PK 기준으로 삭제 쿼리 생성 - QueryBuilder 사용
+    public BulkByScrollResponse deleteByQuery(String index, List<String> pkList, List<Map<String, Object>> dataList,
+                                               List<String> stringList) throws IOException {
+
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+
+        for (Map<String, Object> sourceMap : dataList) {
+            Map<String, Object> pkMap = getPkMap(sourceMap, pkList);
+
+            BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+            for (String key : pkMap.keySet()) {
+                StringBuilder field = new StringBuilder();
+                field.append(key);
+                if (Objects.nonNull(stringList) && stringList.contains(key)) {
+                    field.append(".keyword");
+                }
+                boolQuery.filter(QueryBuilders
+                        .matchQuery(field.toString(), pkMap.get(key))
+                        .operator(Operator.AND)
+                );
+            }
+            queryBuilder.should(boolQuery);
+        }
+
+        DeleteByQueryRequest request = new DeleteByQueryRequest(index);
+        request.setQuery(queryBuilder)
+                .setConflicts("proceed");
+        log.debug("DeleteByQueryRequest Source = {}", request.getSearchRequest().source());
+
+        BulkByScrollResponse bulkResponse = restHighLevelClient.deleteByQuery(request, RequestOptions.DEFAULT);
+        log.info("Total Docs Processed : {}", bulkResponse.getTotal());
+        log.info("Total Docs Deleted : {}", bulkResponse.getDeleted());
+
+        return bulkResponse;
+    }
 
     // 2개 이상의 PK 기준으로 삭제 쿼리 생성
     private String buildDeleteQuery(List<String> pkList, List<Map<String, Object>> dataList, List<String> stringList) {
