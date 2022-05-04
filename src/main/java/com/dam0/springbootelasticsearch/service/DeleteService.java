@@ -51,6 +51,7 @@ public class DeleteService {
 
         DeleteByQueryRequest request = new DeleteByQueryRequest(index);
         request.setQuery(queryBuilder)
+                .setRefresh(true)
                 .setConflicts("proceed");
         log.debug("DeleteByQueryRequest Source = {}", request.getSearchRequest().source());
 
