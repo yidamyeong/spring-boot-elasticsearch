@@ -10,12 +10,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -255,6 +260,22 @@ public class IndexService {
             default:
                 throw new IllegalStateException("Unexpected value(index): " + index);
         }
+    }
+
+    private void sendBulkRequest(List<Map<String, Object>> dataList) throws IOException {
+        BulkRequest bulkRequest = new BulkRequest();
+        for (Map<String, Object> sourceMap : dataList) {
+            sourceMap.put("@timestamp", "");
+            sourceMap.put("timestampStr", "");
+            sourceMap.put("remote_ip", "");
+
+            bulkRequest.add(new IndexRequest("sample-index")
+                    .source(sourceMap, XContentType.JSON)
+            );
+        }
+        bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.WAIT_UNTIL);
+        BulkResponse bulkResponse = restHighLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
+        log.info("bulkResponse = {}", bulkResponse);
     }
 
 }
